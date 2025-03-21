@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../widgets/bottom_navigation.dart'; // Make sure this path is correct
+import '../widgets/bottom_navigation.dart'; 
 import '../screens/dashboard/home_screen.dart' show HomeScreen;
 
 class MainContainerScreen extends StatefulWidget {

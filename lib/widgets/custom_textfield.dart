@@ -48,7 +48,7 @@ class CustomTextField extends StatelessWidget {
             color: Colors.black.withOpacity(0.1),
             spreadRadius: 1,
             blurRadius: 5,
-            offset: Offset(0, 2), // Shadow position
+            offset: Offset(0, 2),
           ),
         ],
       ),
@@ -76,7 +76,7 @@ class CustomTextField extends StatelessWidget {
                   ? IconTheme(
                       data: IconThemeData(
                           color:
-                              Colors.purpleAccent), // Set prefix icon color here
+                              Colors.purpleAccent),
                       child: prefixIcon!,
                     )
                   : null,
@@ -84,7 +84,7 @@ class CustomTextField extends StatelessWidget {
                   ? IconTheme(
                       data: IconThemeData(
                           color:
-                              Colors.purpleAccent), // Set suffix icon color here
+                              Colors.purpleAccent), 
                       child: suffixIcon!,
                     )
                   : null,
@@ -92,7 +92,7 @@ class CustomTextField extends StatelessWidget {
               fillColor: Colors.white,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12), // Rounded corners
-                borderSide: BorderSide.none, // Removing default border color
+                borderSide: BorderSide.none,
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),

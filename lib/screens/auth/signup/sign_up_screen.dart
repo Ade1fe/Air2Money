@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../consants/image_constants.dart' show ImageConstants;
 import '../../../widgets/custom_button.dart' show CustomButton;
 import '../../../widgets/custom_textfield.dart' show CustomTextField;
 
@@ -101,9 +102,9 @@ class _SignUpScreenState extends State<SignUpScreen>
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Colors.purpleAccent.shade200,
-                Colors.purpleAccent.shade400,
-                Colors.purpleAccent.shade100,
+                Colors.purple.shade500,
+                Colors.purple.shade900,
+                Colors.purple.shade300,
               ],
             ),
           ),
@@ -133,10 +134,10 @@ class _SignUpScreenState extends State<SignUpScreen>
                                 ),
                               ],
                             ),
-                            child: Icon(
-                              Icons.swap_horiz_rounded,
-                              size: 50,
-                              color: Colors.purpleAccent.shade200,
+                            child: Image.asset(
+                              ImageConstants.logo,
+                              width: 50,
+                              height: 50,
                             ),
                           ),
                           const SizedBox(height: 20),
@@ -346,7 +347,8 @@ class _SignUpScreenState extends State<SignUpScreen>
                                 text: 'Sign Up',
                                 onPressed: _signUp,
                                 isLoading: _isLoading,
-                                height: 55,
+                                // height: 55,
+                                width: 150,
                                 borderRadius: 12,
                                 backgroundColor: Colors.purpleAccent.shade200,
                               ),

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import 'dart:ui';
 
+import '../../../consants/image_constants.dart' show ImageConstants;
 import '../../../widgets/custom_button.dart' show CustomButton;
 import '../../../widgets/custom_textfield.dart' show CustomTextField;
 
@@ -89,27 +89,23 @@ class _SignInScreenState extends State<SignInScreen>
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Colors.purpleAccent.shade200,
-                Colors.purpleAccent.shade400,
-                Colors.purpleAccent.shade100,
+                Colors.purple.shade500,
+                Colors.purple.shade900,
+                Colors.purple.shade300,
               ],
             ),
           ),
           child: SafeArea(
-            // Use SafeArea with bottom: false to prevent overflow at the bottom
             bottom: false,
             child: SingleChildScrollView(
-              // Remove the fixed height constraint that's causing the overflow
               child: Column(
                 children: [
-                  // Top section with logo and app name
                   FadeTransition(
                     opacity: _fadeAnimation,
                     child: Padding(
                       padding: const EdgeInsets.only(top: 40, bottom: 20),
                       child: Column(
                         children: [
-                          // Logo
                           Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
@@ -123,10 +119,10 @@ class _SignInScreenState extends State<SignInScreen>
                                 ),
                               ],
                             ),
-                            child: Icon(
-                              Icons.swap_horiz_rounded,
-                              size: 50,
-                              color: Colors.purpleAccent.shade200,
+                            child: Image.asset(
+                              ImageConstants.logo,
+                              width: 50,
+                              height: 50,
                             ),
                           ),
                           const SizedBox(height: 20),
@@ -318,7 +314,8 @@ class _SignInScreenState extends State<SignInScreen>
                                 text: 'Sign In',
                                 onPressed: _signIn,
                                 isLoading: _isLoading,
-                                height: 55,
+                                // height: 55,
+                                width: 150,
                                 borderRadius: 12,
                                 backgroundColor: Colors.purpleAccent.shade200,
                               ),
