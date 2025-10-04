@@ -1,10 +1,10 @@
+import 'package:air2money/theme/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart'; // Import Provider
-import 'package:flutter/services.dart';
 
 // Assuming the AuthService is two levels up in a 'service' directory
-import '../../service/auth_service.dart';
+import '../../../service/auth_service.dart';
 import '../../../consants/image_constants.dart' show ImageConstants;
 import '../../../widgets/custom_button.dart' show CustomButton;
 import '../../../widgets/custom_textfield.dart' show CustomTextField;
@@ -107,11 +107,29 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
   }
 
-  // Updated social button helper to allow 'onTap' to be null for disabling
+  // New: Handle social sign in
+  void _socialSignIn(String provider) async {
+    setState(() => _isLoading = true);
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final success = await authService.signInWithSocial(provider);
+
+    if (mounted) {
+      setState(() => _isLoading = false);
+      if (success) {
+        context.go('/home');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$provider sign in failed. Try again.')),
+        );
+      }
+    }
+  }
+
   Widget _buildSocialButton({
-    required VoidCallback? onTap, // <-- Nullable onTap
-    required String icon,
+    required VoidCallback? onTap,
+    required String? icon, // make icon nullable
     required IconData fallbackIcon,
+    required Color iconColor,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -132,18 +150,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
           border: Border.all(color: Colors.grey.shade200, width: 1),
         ),
         child: Center(
-          child: Image.asset(
-            icon,
-            width: 30,
-            height: 30,
-            errorBuilder: (context, error, stackTrace) {
-              return Icon(
-                fallbackIcon,
-                size: 30,
-                color: Colors.purpleAccent.shade400,
-              );
-            },
-          ),
+          child:
+              icon != null
+                  ? Image.asset(icon, width: 30, height: 30)
+                  : Icon(fallbackIcon, size: 30, color: iconColor),
         ),
       ),
     );
@@ -190,20 +200,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 // Full Name
                 CustomTextField(
                   controller: _nameController,
-                  hintText: 'Full Name',
-                  prefixIcon: const Icon(Icons.person),
+                  hint: 'Full Name',
+                  // prefixIcon: const Icon(Icons.person),
                   validator:
                       (value) =>
                           value!.isEmpty ? "Please enter your name" : null,
+                  label: 'Full Name',
+                  icon: Icons.person,
                 ),
                 const SizedBox(height: 20),
 
                 // Email
                 CustomTextField(
                   controller: _emailController,
-                  hintText: 'Email Address',
+                  hint: 'Email Address',
                   keyboardType: TextInputType.emailAddress,
-                  prefixIcon: const Icon(Icons.email),
+                  // prefixIcon: const Icon(Icons.email),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your email';
@@ -215,32 +227,38 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     }
                     return null;
                   },
+                  label: 'Email Address',
+                  icon: Icons.email,
                 ),
                 const SizedBox(height: 20),
 
                 // Password
                 CustomTextField(
                   controller: _passwordController,
-                  hintText: 'Password',
+                  hint: 'Password',
                   obscureText: true,
-                  prefixIcon: const Icon(Icons.lock),
+                  // prefixIcon: const Icon(Icons.lock),
                   validator:
                       (value) =>
                           value!.length < 6 ? "At least 6 characters" : null,
+                  label: 'Password',
+                  icon: Icons.lock,
                 ),
                 const SizedBox(height: 20),
 
                 // Confirm Password
                 CustomTextField(
                   controller: _confirmPasswordController,
-                  hintText: 'Confirm Password',
+                  hint: 'Confirm Password',
                   obscureText: true,
-                  prefixIcon: const Icon(Icons.lock),
+                  // prefixIcon: const Icon(Icons.lock),
                   validator:
                       (value) =>
                           value != _passwordController.text
                               ? "Passwords don’t match"
                               : null,
+                  label: 'Confirm Password',
+                  icon: Icons.lock,
                 ),
 
                 // Terms
@@ -250,7 +268,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       value: _agreeToTerms,
                       onChanged:
                           (v) => setState(() => _agreeToTerms = v ?? false),
-                      activeColor: Colors.purple,
+                      activeColor: AppColors.primary,
                     ),
                     Expanded(
                       child: Text(
@@ -273,7 +291,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   isLoading: _isLoading,
                   width: double.infinity,
                   borderRadius: 8,
-                  backgroundColor: Colors.purple,
+                  backgroundColor: AppColors.primary,
                 ),
 
                 const SizedBox(height: 24),
@@ -297,21 +315,26 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     _buildSocialButton(
-                      onTap: () {},
-                      icon: 'lib/assets/google.png',
+                      onTap: _isLoading ? null : () => _socialSignIn('Google'),
+                      icon: null,
                       fallbackIcon: Icons.g_mobiledata,
+                      iconColor: Colors.red.shade600,
                     ),
                     const SizedBox(width: 16),
                     _buildSocialButton(
-                      onTap: () {},
-                      icon: 'lib/assets/facebook.png',
+                      onTap:
+                          _isLoading ? null : () => _socialSignIn('Facebook'),
+                      icon: null, // force using Icon instead of asset
                       fallbackIcon: Icons.facebook,
+                      iconColor: Colors.blue.shade800,
                     ),
+
                     const SizedBox(width: 16),
                     _buildSocialButton(
-                      onTap: () {},
-                      icon: 'lib/assets/apple.png',
+                      onTap: _isLoading ? null : () => _socialSignIn('Apple'),
+                      icon: null,
                       fallbackIcon: Icons.apple,
+                      iconColor: Colors.black,
                     ),
                   ],
                 ),
@@ -330,7 +353,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           text: "Sign In",
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: Colors.purple,
+                            color: AppColors.primary,
                           ),
                         ),
                       ],

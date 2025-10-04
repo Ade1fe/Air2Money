@@ -1,20 +1,32 @@
+import 'package:air2money/service/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'router/router.dart';
 import 'theme/theme.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  final authService = AuthService();
+  await authService.loadUserFromStorage(); 
 
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]).then((
     _,
   ) {
-    runApp(const MyApp());
+    runApp(
+      ChangeNotifierProvider(
+        create: (_) => authService,
+        child: MyApp(authService: authService),
+      ),
+    );
   });
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final AuthService authService;
+
+  const MyApp({super.key, required this.authService});
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +34,9 @@ class MyApp extends StatelessWidget {
       title: 'Air2Money',
       debugShowCheckedModeBanner: false,
       theme: AppThemes.darkTheme(context),
-      routerConfig: appRouter,
+      routerConfig: createRouter(
+        authService,
+      ), // <-- factory receives authService
     );
   }
 }

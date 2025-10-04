@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../widgets/bottom_navigation.dart'; 
+import 'package:go_router/go_router.dart';
+import '../widgets/bottom_navigation.dart';
 import '../screens/dashboard/home_screen.dart' show HomeScreen;
 
 class MainContainerScreen extends StatefulWidget {
@@ -14,11 +15,24 @@ class _MainContainerScreenState extends State<MainContainerScreen> {
   final PageController _pageController = PageController();
 
   // Placeholder screens - replace with your actual screens
-  final List<Widget> _screens = [
+  late final List<Widget> _screens = [
     const HomeScreen(),
     const Center(child: Text('User')),
     const Center(child: Text('Cart')),
-    const Center(child: Text('Messages')),
+    Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text("hi"),
+          ElevatedButton(
+            onPressed: () {
+              context.go('/logout');
+            },
+            child: const Text("Logout screen "),
+          ),
+        ],
+      ),
+    ),
   ];
 
   @override

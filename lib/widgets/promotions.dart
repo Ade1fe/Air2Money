@@ -19,7 +19,7 @@ class Promotions extends StatelessWidget {
           height: 150,
           child: ListView(
             scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
+            physics: const AlwaysScrollableScrollPhysics(),
             children: [
               _buildPromotionCard(
                 title: 'Refer & Earn',
@@ -104,4 +104,3 @@ class Promotions extends StatelessWidget {
     );
   }
 }
-

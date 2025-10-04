@@ -1,126 +1,88 @@
-
+import 'package:air2money/theme/theme.dart';
 import 'package:flutter/material.dart';
-import '../theme/theme.dart';
 
 class CustomTextField extends StatelessWidget {
-  final TextEditingController? controller;
-  final String? hintText;
-  final String? labelText;
+  final TextEditingController controller;
+  final String label;
+  final String hint;
+  final IconData icon;
+  final TextInputType? keyboardType;
   final bool obscureText;
-  final TextInputType keyboardType;
-  final void Function(String)? onChanged;
   final String? Function(String?)? validator;
-  final Widget? prefixIcon;
-  final Widget? suffixIcon;
-  final int? maxLines;
-  final int? minLines;
-  final bool enabled;
-  final InputDecoration? decoration;
+  final Color? iconColor;
+  final Color? focusedBorderColor;
 
   const CustomTextField({
     super.key,
-    this.controller,
-    this.hintText,
-    this.labelText,
+    required this.controller,
+    required this.label,
+    required this.hint,
+    required this.icon,
+    this.keyboardType,
     this.obscureText = false,
-    this.keyboardType = TextInputType.text,
-    this.onChanged,
     this.validator,
-    this.prefixIcon,
-    this.suffixIcon,
-    this.maxLines = 1,
-    this.minLines,
-    this.enabled = true,
-    this.decoration,
+    this.iconColor,
+    this.focusedBorderColor,
   });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDarkMode = theme.brightness == Brightness.dark;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 5,
-            offset: Offset(0, 2),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey[700],
           ),
-        ],
-      ),
-      child: TextFormField(
-        controller: controller,
-        obscureText: obscureText,
-        keyboardType: keyboardType,
-        onChanged: onChanged,
-        validator: validator,
-        maxLines: maxLines,
-        minLines: minLines,
-        enabled: enabled,
-        style: AppTextStyles.body.copyWith(
-          color: Colors.black,
         ),
-        decoration: decoration ??
-            InputDecoration(
-              hintText: hintText,
-              labelText: labelText,
-              hintStyle: AppTextStyles.body.copyWith(color: Colors.black),
-              labelStyle: AppTextStyles.body.copyWith(
-                color: isDarkMode ? AppColors.primary : AppColors.secondary,
-              ),
-              prefixIcon: prefixIcon != null
-                  ? IconTheme(
-                      data: IconThemeData(
-                          color:
-                              Colors.purpleAccent),
-                      child: prefixIcon!,
-                    )
-                  : null,
-              suffixIcon: suffixIcon != null
-                  ? IconTheme(
-                      data: IconThemeData(
-                          color:
-                              Colors.purpleAccent), 
-                      child: suffixIcon!,
-                    )
-                  : null,
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12), // Rounded corners
-                borderSide: BorderSide.none,
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: Colors.purpleAccent.shade700.withOpacity(0.6),
-                  width: 1.5,
-                ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: Colors.purpleAccent.shade400,
-                  width: 1,
-                ),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.red),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.red, width: 2),
-              ),
-              errorStyle: AppTextStyles.caption.copyWith(color: Colors.red),
-              contentPadding:
-                  EdgeInsets.symmetric(vertical: 15, horizontal: 12),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          keyboardType: keyboardType,
+          obscureText: obscureText,
+          validator: validator,
+          style: const TextStyle(
+            color: AppColors.primary, // ✅ Ensures input text is primary
+            fontSize: 16,
+          ),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: TextStyle(
+              color: Colors.grey[400], // ✅ Makes hint text gray
+              fontSize: 14,
             ),
-      ),
+            prefixIcon: Icon(icon, color: iconColor ?? AppColors.primary),
+            filled: true,
+            fillColor: Colors.grey[50],
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey[300]!),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: focusedBorderColor ?? AppColors.primary,
+                width: 2,
+              ),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.red),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

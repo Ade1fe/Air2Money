@@ -1,4 +1,4 @@
-
+import 'package:air2money/service/airtime_api.dart';
 import 'package:flutter/material.dart';
 import 'package:air2money/widgets/app_scaffold.dart';
 import '../../consants/image_constants.dart' show ImageConstants;
@@ -22,41 +22,10 @@ class _HomeScreenState extends State<HomeScreen>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
-  final double _balance = 5280.75;
-  final List<Transaction> _recentTransactions = [
-    Transaction(
-      id: '1',
-      type: TransactionType.received,
-      amount: 1200.00,
-      date: DateTime.now().subtract(const Duration(hours: 2)),
-      name: 'John Doe',
-      status: TransactionStatus.completed,
-    ),
-    Transaction(
-      id: '2',
-      type: TransactionType.sent,
-      amount: 500.50,
-      date: DateTime.now().subtract(const Duration(hours: 5)),
-      name: 'Sarah Smith',
-      status: TransactionStatus.completed,
-    ),
-    Transaction(
-      id: '3',
-      type: TransactionType.received,
-      amount: 750.25,
-      date: DateTime.now().subtract(const Duration(days: 1)),
-      name: 'Mike Johnson',
-      status: TransactionStatus.completed,
-    ),
-    Transaction(
-      id: '4',
-      type: TransactionType.sent,
-      amount: 320.00,
-      date: DateTime.now().subtract(const Duration(days: 2)),
-      name: 'Emma Williams',
-      status: TransactionStatus.pending,
-    ),
-  ];
+  double _balance = 0.0;
+  bool _isLoadingBalance = true;
+  bool _isLoadingTransactions = true;
+  List<Transaction> _recentTransactions = [];
 
   @override
   void initState() {
@@ -71,12 +40,96 @@ class _HomeScreenState extends State<HomeScreen>
     );
 
     _animationController.forward();
+    _loadBalance();
+    _loadTransactions();
   }
 
   @override
   void dispose() {
     _animationController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadBalance() async {
+    setState(() => _isLoadingBalance = true);
+    try {
+      final balance = await AirtimeApi.getBalance("user_1");
+      if (mounted) {
+        setState(() {
+          _balance = balance;
+          _isLoadingBalance = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _balance = 0.0;
+          _isLoadingBalance = false;
+        });
+        _showErrorSnackBar("Failed to load balance: ${e.toString()}");
+      }
+    }
+  }
+
+  Future<void> _loadTransactions() async {
+    setState(() => _isLoadingTransactions = true);
+    try {
+      final apiTransactions = await AirtimeApi.getTransactions("user_1");
+
+      if (mounted) {
+        final transactions =
+            apiTransactions.map((apiTx) {
+              final parsed = AirtimeApi.parseTransactionResponse(apiTx);
+
+              return Transaction(
+                id: parsed['id'],
+                type:
+                    parsed['type'] == 'received'
+                        ? TransactionType.received
+                        : TransactionType.sent,
+                amount: parsed['amount'],
+                date: parsed['date'],
+                name: parsed['name'],
+                status:
+                    parsed['status'] == 'completed'
+                        ? TransactionStatus.completed
+                        : TransactionStatus.pending,
+              );
+            }).toList();
+
+        // Sort by date (most recent first)
+        transactions.sort((a, b) => b.date.compareTo(a.date));
+
+        setState(() {
+          _recentTransactions = transactions.take(5).toList();
+          _isLoadingTransactions = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _recentTransactions = [];
+          _isLoadingTransactions = false;
+        });
+        _showErrorSnackBar("Failed to load transactions: ${e.toString()}");
+      }
+    }
+  }
+
+  Future<void> _refreshData() async {
+    await Future.wait([_loadBalance(), _loadTransactions()]);
+    // Add delay for better UX
+    await Future.delayed(const Duration(milliseconds: 500));
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   @override
@@ -86,24 +139,25 @@ class _HomeScreenState extends State<HomeScreen>
       padding: EdgeInsets.zero,
       body: RefreshIndicator(
         color: AppColors.primary,
-        onRefresh: () async {
-          // Simulate refresh
-          await Future.delayed(const Duration(seconds: 1));
-        },
+        onRefresh: _refreshData,
         child: FadeTransition(
           opacity: _fadeAnimation,
           child: ListView(
-            physics: const BouncingScrollPhysics(),
+            physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.all(16),
             children: [
-              // Balance Card
-              BalanceCard(balance: _balance),
+              // Balance Card with API data
+              _isLoadingBalance
+                  ? _buildLoadingBalanceCard()
+                  : BalanceCard(balance: _balance),
 
               // Quick Actions
               const QuickActions(),
 
               // Recent Transactions
-              RecentTransactions(transactions: _recentTransactions),
+              _isLoadingTransactions
+                  ? _buildLoadingTransactionsCard()
+                  : RecentTransactions(transactions: _recentTransactions),
 
               // Promotions
               const Promotions(),
@@ -117,10 +171,90 @@ class _HomeScreenState extends State<HomeScreen>
       // FAB for new transaction
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Show new transaction dialog/screen
+          // Navigate to sell airtime screen
+          // context.push('/sell-airtime');
         },
         backgroundColor: AppColors.primary,
         child: const Icon(Icons.swap_horiz_rounded, color: Colors.white),
+      ),
+    );
+  }
+
+  Widget _buildLoadingBalanceCard() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
+      height: 200,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppColors.primary, AppColors.secondary],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
+            SizedBox(height: 12),
+            Text(
+              'Loading balance...',
+              style: TextStyle(color: Colors.white70, fontSize: 14),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingTransactionsCard() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Recent Transactions',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+          Center(
+            child: Column(
+              children: [
+                CircularProgressIndicator(
+                  color: AppColors.primary,
+                  strokeWidth: 3,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Loading transactions...',
+                  style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -136,11 +270,11 @@ class _HomeScreenState extends State<HomeScreen>
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10), // Rounded corners
+              borderRadius: BorderRadius.circular(10),
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.purple.withOpacity(0.2),
+                  color: AppColors.primary.withOpacity(0.1),
                   blurRadius: 10,
                   spreadRadius: 1,
                   offset: const Offset(0, 2),
@@ -150,7 +284,7 @@ class _HomeScreenState extends State<HomeScreen>
             padding: const EdgeInsets.all(5),
             child: Image.asset(ImageConstants.logo, fit: BoxFit.contain),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -165,7 +299,7 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                 ),
                 Text(
-                  'Convert Airtel to Cash Instantly',
+                  'Convert Airtime to Cash Instantly',
                   style: TextStyle(color: Colors.grey[600], fontSize: 12),
                 ),
               ],
@@ -177,6 +311,10 @@ class _HomeScreenState extends State<HomeScreen>
         IconButton(
           icon: const Icon(Icons.notifications_rounded),
           onPressed: () {},
+        ),
+        IconButton(
+          icon: const Icon(Icons.refresh_rounded),
+          onPressed: _refreshData,
         ),
         IconButton(icon: const Icon(Icons.settings_rounded), onPressed: () {}),
         const SizedBox(width: 8),

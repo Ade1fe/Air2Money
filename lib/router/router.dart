@@ -1,16 +1,20 @@
+import 'package:air2money/screens/airtime/airtime_demo_screen%20.dart';
+import 'package:air2money/screens/auth/logout_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
+import 'package:air2money/service/auth_service.dart';
 import '../screens/auth/signin/sign_in_screen.dart';
 import '../screens/auth/signup/sign_up_screen.dart';
 import '../widgets/app_scaffold.dart';
 import '../consants/image_constants.dart';
 import '../theme/theme.dart';
-import '../widgets/custom_button.dart' show ButtonType, CustomButton;
+import '../widgets/custom_button.dart' show CustomButton;
 import '../widgets/main_container_screen.dart';
 
-// Create a router notifier to handle route changes
+// Router Notifier
 class RouterNotifier extends ChangeNotifier {
-  // ignore: unused_field
   bool _shouldRefresh = false;
 
   void refreshRoutes() {
@@ -20,99 +24,87 @@ class RouterNotifier extends ChangeNotifier {
   }
 }
 
-// Create a global key for the navigator
+// Global navigator key
 final rootNavigatorKey = GlobalKey<NavigatorState>();
 final routerNotifier = RouterNotifier();
 
-// Create a GoRouter configuration
-final GoRouter appRouter = GoRouter(
-  navigatorKey: rootNavigatorKey,
-  initialLocation: '/',
-  debugLogDiagnostics: true,
-  refreshListenable: routerNotifier,
-  routes: [
-    GoRoute(
-      path: '/',
-      name: 'splash',
-      builder: (context, state) => const SplashScreen(),
-    ),
-    GoRoute(
-      path: '/find-your-screen',
-      name: 'find-your-screen',
-      builder: (context, state) => const FindYourScreen(),
-    ),
-    GoRoute(
-      path: '/signin',
-      name: 'signin',
-      builder: (context, state) => const SignInScreen(),
-    ),
-    GoRoute(
-      path: '/signup',
-      name: 'signup',
-      builder: (context, state) => const SignUpScreen(),
-    ),
-    GoRoute(
-      path: '/home',
-      name: 'home',
-      builder: (context, state) => const MainContainerScreen(),
-    ),
-    // Add other routes as needed
-  ],
-  // Error handling for routes that don't exist
-  errorBuilder:
-      (context, state) => Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.error_outline,
-                color: Colors.deepOrange.shade400,
-                size: 60,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Page Not Found',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.deepOrange.shade700,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'The page you are looking for doesn\'t exist or has been moved.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey.shade700),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () => context.go('/'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepOrange.shade400,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text('Go Home'),
-              ),
-            ],
-          ),
-        ),
-      ),
-);
+// ✅ Correct factory
+GoRouter createRouter(AuthService authService) {
+  return GoRouter(
+    navigatorKey: rootNavigatorKey,
+    initialLocation: '/',
+    debugLogDiagnostics: true,
+    refreshListenable: routerNotifier,
+    redirect: (context, state) {
+      final loggedIn = authService.isAuthenticated;
+      final loggingIn =
+          state.matchedLocation == '/signin' ||
+          state.matchedLocation == '/signup';
 
-// SplashScreen implementation
+      // If not logged in → block access to home
+      if (!loggedIn && state.matchedLocation == '/home') {
+        return '/signin';
+      }
+
+      // If logged in → block going back to signin/signup
+      if (loggedIn && loggingIn) {
+        return '/home';
+      }
+
+      return null; // no redirect
+    },
+
+    routes: [
+      GoRoute(
+        path: '/',
+        name: 'splash',
+        builder: (context, state) => const SplashScreen(),
+      ),
+      GoRoute(
+        path: '/find-your-screen',
+        name: 'find-your-screen',
+        builder: (context, state) => const FindYourScreen(),
+      ),
+      GoRoute(
+        path: '/signin',
+        name: 'signin',
+        builder: (context, state) => const SignInScreen(),
+      ),
+      GoRoute(
+        path: '/signup',
+        name: 'signup',
+        builder: (context, state) => const SignUpScreen(),
+      ),
+      GoRoute(
+        path: '/logout',
+        name: 'logout',
+        builder: (context, state) => const LogoutScreen(),
+      ),
+
+      GoRoute(
+        path: '/home',
+        name: 'home',
+        builder: (context, state) => const MainContainerScreen(),
+      ),
+      GoRoute(
+        path: '/airtime',
+        name: 'airtime',
+        builder: (context, state) => const AirtimeDemoScreen(),
+      ),
+    ],
+    errorBuilder:
+        (context, state) => Scaffold(
+          body: Center(child: Text('Page not found: ${state.error}')),
+        ),
+  );
+}
+
+// Splash Screen
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  _SplashScreenState createState() => _SplashScreenState();
+  State<SplashScreen> createState() => _SplashScreenState();
 }
 
 class _SplashScreenState extends State<SplashScreen> {
@@ -122,12 +114,18 @@ class _SplashScreenState extends State<SplashScreen> {
     _navigateToNextScreen();
   }
 
-  _navigateToNextScreen() {
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        context.go('/find-your-screen');
-      }
-    });
+  _navigateToNextScreen() async {
+    await Future.delayed(const Duration(seconds: 2));
+    if (!mounted) return;
+
+    final auth = Provider.of<AuthService>(context, listen: false);
+    await auth.loadUserFromStorage();
+
+    if (auth.isAuthenticated) {
+      context.go('/home');
+    } else {
+      context.go('/find-your-screen');
+    }
   }
 
   @override
@@ -140,7 +138,6 @@ class _SplashScreenState extends State<SplashScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image.asset(ImageConstants.logo, width: 200, height: 100),
-            // const SizedBox(height: 20),
             Text(
               'Air2Money',
               style: AppTextStyles.getStyle(
@@ -152,17 +149,6 @@ class _SplashScreenState extends State<SplashScreen> {
                         : Colors.purple.shade400,
               ),
             ),
-            Text(
-              'Convert Airtel to Cash Instantly',
-              style: AppTextStyles.body.copyWith(
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
-                color:
-                    Theme.of(context).brightness == Brightness.dark
-                        ? AppColors.darkTextSecondary
-                        : AppColors.textSecondary,
-              ),
-            ),
           ],
         ),
       ),
@@ -170,6 +156,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 }
 
+// "Find Your Screen" (intro screen)
 class FindYourScreen extends StatelessWidget {
   const FindYourScreen({super.key});
 
@@ -211,7 +198,6 @@ class FindYourScreen extends StatelessWidget {
               onPressed: () {
                 context.go('/signin');
               },
-              // type: ButtonType.primary,
             ),
             const SizedBox(height: 16),
           ],

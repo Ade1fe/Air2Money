@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../theme/theme.dart';
 
 class QuickActions extends StatelessWidget {
@@ -47,7 +48,9 @@ class QuickActions extends StatelessWidget {
                 icon: Icons.phone_android_rounded,
                 label: 'Airtime',
                 color: Colors.green.shade500,
-                onTap: () {},
+                onTap: () {
+                  context.go('/airtime');
+                },
               ),
               _buildQuickActionItem(
                 icon: Icons.wifi_rounded,
@@ -69,8 +72,10 @@ class QuickActions extends StatelessWidget {
     required VoidCallback onTap,
   }) {
     return GestureDetector(
+      behavior: HitTestBehavior.translucent,
       onTap: onTap,
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
             width: 50,
@@ -95,4 +100,3 @@ class QuickActions extends StatelessWidget {
     );
   }
 }
-

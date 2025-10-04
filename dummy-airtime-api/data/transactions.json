@@ -1,0 +1,14 @@
+{
+  "e069a341-d4d6-417b-bc8b-aba5e0c1655e": {
+    "id": "e069a341-d4d6-417b-bc8b-aba5e0c1655e",
+    "userId": "user_1",
+    "network": "mtn",
+    "phone": "09024386013",
+    "amount": 100,
+    "cashAmount": 85,
+    "status": "completed",
+    "createdAt": "2025-10-04T14:09:51.202Z",
+    "type": "received",
+    "completedAt": "2025-10-04T14:09:56.220Z"
+  }
+}

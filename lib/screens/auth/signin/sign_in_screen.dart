@@ -1,4 +1,6 @@
-import 'package:air2money/screens/service/auth_service.dart';
+import 'package:air2money/consants/image_constants.dart';
+import 'package:air2money/service/auth_service.dart';
+import 'package:air2money/theme/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -71,10 +73,10 @@ class _SignInScreenState extends State<SignInScreen> {
     }
   }
 
-  // Helper widget for a simple social button
   Widget _buildSocialButton({
     required VoidCallback? onTap,
-    required IconData icon,
+    required String? icon, // make icon nullable
+    required IconData fallbackIcon,
     required Color iconColor,
   }) {
     return GestureDetector(
@@ -85,16 +87,22 @@ class _SignInScreenState extends State<SignInScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade200, width: 1),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.08),
               blurRadius: 8,
               spreadRadius: 1,
+              offset: const Offset(0, 2),
             ),
           ],
+          border: Border.all(color: Colors.grey.shade200, width: 1),
         ),
-        child: Center(child: Icon(icon, size: 30, color: iconColor)),
+        child: Center(
+          child:
+              icon != null
+                  ? Image.asset(icon, width: 30, height: 30)
+                  : Icon(fallbackIcon, size: 30, color: iconColor),
+        ),
       ),
     );
   }
@@ -103,7 +111,7 @@ class _SignInScreenState extends State<SignInScreen> {
   Widget build(BuildContext context) {
     // Simplified UI, removing the complex gradient and animations
     return Scaffold(
-      appBar: AppBar(title: const Text('Sign In')),
+      backgroundColor: Colors.white,
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -112,45 +120,75 @@ class _SignInScreenState extends State<SignInScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Title and welcome message
-                Text(
-                  'Welcome Back',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.displayLarge?.copyWith(fontSize: 28),
+                // // Title and welcome message
+                // Text(
+                //   'Welcome Back',
+                //   style: Theme.of(
+                //     context,
+                //   ).textTheme.displayLarge?.copyWith(fontSize: 28),
+                // ),
+                // const SizedBox(height: 8),
+                // Text(
+                //   'Sign in to continue',
+                //   style: Theme.of(context).textTheme.bodySmall,
+                // ),
+                // const SizedBox(height: 30),
+                Column(
+                  children: [
+                    Image.asset(ImageConstants.logo, width: 70, height: 70),
+                    const SizedBox(height: 12),
+                    const Text(
+                      "Air2Money",
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Welcome Back',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  'Sign in to continue',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-                const SizedBox(height: 30),
+
+                const SizedBox(height: 40),
 
                 // Email field
                 CustomTextField(
                   controller: _emailController,
-                  hintText: 'Email Address',
+                  hint: 'Email Address',
                   keyboardType: TextInputType.emailAddress,
-                  prefixIcon: const Icon(Icons.email_rounded),
+                  icon: Icons.email,
+                  // prefixIcon: const Icon(Icons.email_rounded),
                   validator: (value) {
-                    if (value == null || value.isEmpty)
+                    if (value == null || value.isEmpty) {
                       return 'Enter your email';
+                    }
                     return null;
                   },
+                  label: 'Email Address',
                 ),
                 const SizedBox(height: 20),
 
                 // Password field
                 CustomTextField(
                   controller: _passwordController,
-                  hintText: 'Password',
+                  hint: 'Password',
                   obscureText: true,
-                  prefixIcon: const Icon(Icons.lock_rounded),
+                  icon: Icons.password,
+                  // prefixIcon: const Icon(Icons.lock_rounded),
                   validator: (value) {
-                    if (value == null || value.isEmpty)
+                    if (value == null || value.isEmpty) {
                       return 'Enter your password';
+                    }
                     return null;
                   },
+                  label: 'Password',
                 ),
 
                 // Remember me and forgot password (kept for completeness)
@@ -166,8 +204,15 @@ class _SignInScreenState extends State<SignInScreen> {
                             onChanged: (value) {
                               setState(() => _rememberMe = value ?? false);
                             },
+                            activeColor: AppColors.primary,
                           ),
-                          const Text('Remember me'),
+                          Text(
+                            'Remember me',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: AppColors.primary,
+                            ),
+                          ),
                         ],
                       ),
                       GestureDetector(
@@ -185,25 +230,15 @@ class _SignInScreenState extends State<SignInScreen> {
 
                 const SizedBox(height: 20),
 
-                // // Sign in button
-                // CustomButton(
-                //   text: 'Sign In',
-                //   onPressed: _isLoading ? null : _signIn,
-                //   isLoading: _isLoading,
-                //   width: double.infinity,
-                //   // Use theme colors
-                //   backgroundColor: Theme.of(context).primaryColor,
-                // ),
-
                 // Sign up button
                 CustomButton(
-                  text: 'Sign Up',
+                  text: 'Sign In',
                   onPressed: _signIn,
                   isLoading: _isLoading,
                   // height: 55,
                   width: 150,
                   borderRadius: 12,
-                  backgroundColor: Colors.purpleAccent.shade200,
+                  backgroundColor: AppColors.primary,
                 ),
 
                 const SizedBox(height: 40),
@@ -211,7 +246,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 // Or continue with
                 Row(
                   children: [
-                    const Expanded(child: Divider()),
+                    Expanded(child: Divider(color: Colors.grey.shade300)),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Text(
@@ -219,37 +254,36 @@ class _SignInScreenState extends State<SignInScreen> {
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ),
-                    const Expanded(child: Divider()),
+                    Expanded(child: Divider(color: Colors.grey.shade300)),
                   ],
                 ),
 
                 const SizedBox(height: 24),
 
-                // Social sign in buttons 🚀
+                // Social buttons
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Google Button
                     _buildSocialButton(
                       onTap: _isLoading ? null : () => _socialSignIn('Google'),
-                      icon: Icons.g_mobiledata_rounded,
+                      icon: null,
+                      fallbackIcon: Icons.g_mobiledata,
                       iconColor: Colors.red.shade600,
                     ),
-                    const SizedBox(width: 20),
-
-                    // Facebook Button
+                    const SizedBox(width: 16),
                     _buildSocialButton(
                       onTap:
                           _isLoading ? null : () => _socialSignIn('Facebook'),
-                      icon: Icons.facebook_rounded,
+                      icon: null, // force using Icon instead of asset
+                      fallbackIcon: Icons.facebook,
                       iconColor: Colors.blue.shade800,
                     ),
-                    const SizedBox(width: 20),
 
-                    // Apple Button
+                    const SizedBox(width: 16),
                     _buildSocialButton(
                       onTap: _isLoading ? null : () => _socialSignIn('Apple'),
-                      icon: Icons.apple_rounded,
+                      icon: null,
+                      fallbackIcon: Icons.apple,
                       iconColor: Colors.black,
                     ),
                   ],
@@ -270,7 +304,7 @@ class _SignInScreenState extends State<SignInScreen> {
                             context,
                           ).textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.bold,
-                            color: Theme.of(context).hintColor,
+                            color: AppColors.primary,
                           ),
                         ),
                       ),
