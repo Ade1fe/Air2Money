@@ -3,7 +3,6 @@ import 'package:air2money/widgets/balance_card.dart';
 import 'package:air2money/widgets/custom_textfield.dart';
 import 'package:air2money/widgets/network_selector.dart';
 import 'package:air2money/widgets/info_card.dart';
-import 'package:air2money/widgets/loading_balance_card.dart';
 import 'package:air2money/widgets/transaction_card.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';

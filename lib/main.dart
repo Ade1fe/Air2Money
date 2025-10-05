@@ -1,15 +1,16 @@
 import 'package:air2money/service/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'router/router.dart';
 import 'theme/theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  await dotenv.load(fileName: ".env");
   final authService = AuthService();
-  await authService.loadUserFromStorage(); 
+  await authService.loadUserFromStorage();
 
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]).then((
     _,
