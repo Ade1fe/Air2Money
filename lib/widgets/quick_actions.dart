@@ -36,7 +36,9 @@ class QuickActions extends StatelessWidget {
                 icon: Icons.swap_horiz_rounded,
                 label: 'Convert',
                 color: AppColors.primary,
-                onTap: () {},
+                onTap: () {
+                  context.go('/convert');
+                },
               ),
               _buildQuickActionItem(
                 icon: Icons.account_balance_wallet_rounded,

@@ -1,4 +1,5 @@
-import 'package:air2money/screens/airtime/airtime_demo_screen%20.dart';
+import 'package:air2money/screens/airtime/airtime_screen.dart';
+import 'package:air2money/screens/airtime/convert_screen.dart';
 import 'package:air2money/screens/auth/logout_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -87,9 +88,14 @@ GoRouter createRouter(AuthService authService) {
         builder: (context, state) => const MainContainerScreen(),
       ),
       GoRoute(
+        path: '/convert',
+        name: 'convert',
+        builder: (context, state) => const ConvertScreen(),
+      ),
+      GoRoute(
         path: '/airtime',
         name: 'airtime',
-        builder: (context, state) => const AirtimeDemoScreen(),
+        builder: (context, state) => const AirtimeScreen(),
       ),
     ],
     errorBuilder:

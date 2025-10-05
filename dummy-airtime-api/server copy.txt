@@ -78,83 +78,22 @@ app.get("/balance", (req, res) => {
   res.json({ balanceNGN: balance[userId] || 0 });
 });
 
-// Buy airtime (deducts from balance)
-app.post("/buy", (req, res) => {
-  const { userId, network, phone, amount } = req.body;
-  
-  if (!userId || !network || !phone || !amount) {
-    return res.status(400).json({ error: "Missing required fields" });
-  }
-
-  const numAmount = Number(amount);
-  
-  // Check if user has sufficient balance
-  const userBalance = balance[userId] || 0;
-  if (userBalance < numAmount) {
-    return res.status(400).json({ 
-      error: "Insufficient balance",
-      balance: userBalance,
-      required: numAmount
-    });
-  }
-
-  const id = uuidv4();
-  const createdAt = new Date().toISOString();
-
-  const transaction = {
-    id,
-    userId,
-    network,
-    phone,
-    amount: numAmount,
-    cashAmount: numAmount, // Same as amount for purchase
-    status: "pending",
-    createdAt,
-    type: "sent" // This is a purchase/debit
-  };
-
-  transactions[id] = transaction;
-  balance[userId] = userBalance - numAmount; // Deduct from balance
-
-  // Save immediately
-  saveTransactions();
-  saveBalance();
-
-  console.log(`💸 User ${userId} purchased ₦${numAmount} airtime. New balance: ₦${balance[userId]}`);
-
-  // Simulate processing delay
-  setTimeout(() => {
-    transactions[id].status = "completed";
-    transactions[id].completedAt = new Date().toISOString();
-    saveTransactions();
-    console.log(`✅ Transaction ${id} completed`);
-  }, 3000);
-
-  res.json({ success: true, transaction: transactions[id] });
-});
-
-// Sell airtime (converts airtime to cash, adds to balance)
+// Sell airtime
 app.post("/sell", (req, res) => {
   const { userId, network, phone, amount } = req.body;
-  
-  if (!userId || !network || !phone || !amount) {
-    return res.status(400).json({ error: "Missing required fields" });
-  }
-
   const id = uuidv4();
   const createdAt = new Date().toISOString();
-  const numAmount = Number(amount);
 
   const transaction = {
     id,
     userId,
     network,
     phone,
-    amount: numAmount,
-    cashAmount: numAmount * 0.85, // 85% conversion rate
+    amount: Number(amount),
+    cashAmount: Number(amount) * 0.85, 
     status: "pending",
     createdAt,
-    type: "received" // This is airtime conversion/credit
+    type: "received"
   };
 
   transactions[id] = transaction;
@@ -163,8 +102,6 @@ app.post("/sell", (req, res) => {
   // Save immediately
   saveTransactions();
   saveBalance();
-
-  console.log(`💰 User ${userId} converted ₦${numAmount} airtime to ₦${transaction.cashAmount}. New balance: ₦${balance[userId]}`);
 
   // Simulate processing delay
   setTimeout(() => {
@@ -194,6 +131,20 @@ app.get("/transactions", (req, res) => {
 
   const userTransactions = Object.values(transactions)
     .filter(tx => tx.userId === userId)
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  res.json({ transactions: userTransactions });
+});
+// Get all transactions for a user
+app.get("/transactions", (req, res) => {
+  const { userId } = req.query;
+  
+  if (!userId) {
+    return res.status(400).json({ error: "userId is required" });
+  }
+
+  const userTransactions = Object.values(transactions)
+    .filter(tx => tx.userId === userId)
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // Latest first
 
   res.json({ transactions: userTransactions });
@@ -212,6 +163,4 @@ const PORT = 4000;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Airtime API running on http://localhost:${PORT}`);
   console.log(`💾 Data persisted in: ${DATA_DIR}`);
-  console.log(`📱 Buy airtime: POST /buy (deducts balance)`);
-  console.log(`💰 Sell airtime: POST /sell (adds to balance)`);
 });

@@ -1,4 +1,5 @@
 import 'package:air2money/service/airtime_api.dart';
+import 'package:air2money/theme/theme.dart';
 import 'package:air2money/widgets/balance_card.dart';
 import 'package:air2money/widgets/custom_textfield.dart';
 import 'package:air2money/widgets/network_selector.dart';
@@ -35,14 +36,14 @@ class ErrorCard extends StatelessWidget {
   }
 }
 
-class AirtimeDemoScreen extends StatefulWidget {
-  const AirtimeDemoScreen({super.key});
+class ConvertScreen extends StatefulWidget {
+  const ConvertScreen({super.key});
 
   @override
-  State<AirtimeDemoScreen> createState() => _AirtimeDemoScreenState();
+  State<ConvertScreen> createState() => _ConvertScreenState();
 }
 
-class _AirtimeDemoScreenState extends State<AirtimeDemoScreen> {
+class _ConvertScreenState extends State<ConvertScreen> {
   final _formKey = GlobalKey<FormState>();
   final _phoneController = TextEditingController();
   final _amountController = TextEditingController();
@@ -284,7 +285,7 @@ class _AirtimeDemoScreenState extends State<AirtimeDemoScreen> {
               ],
             ),
             actions: [
-              // In AirtimeDemoScreen, modify the "Done" button in _showSuccessDialog()
+              // In ConvertScreen, modify the "Done" button in _showSuccessDialog()
               TextButton(
                 onPressed: () {
                   Navigator.of(ctx).pop();
@@ -415,7 +416,7 @@ class _AirtimeDemoScreenState extends State<AirtimeDemoScreen> {
           },
         ),
         title: const Text(
-          "Sell Airtime for Cash",
+          "",
           style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w600),
         ),
         actions: [
@@ -425,6 +426,7 @@ class _AirtimeDemoScreenState extends State<AirtimeDemoScreen> {
           ),
         ],
       ),
+
       body: RefreshIndicator(
         onRefresh: _loadBalance,
         child: ListView(
@@ -571,14 +573,14 @@ class _AirtimeDemoScreenState extends State<AirtimeDemoScreen> {
               ),
             ],
             const SizedBox(height: 16),
-            CustomTextField(
-              controller: _pinController,
-              label: "Transfer PIN (Optional)",
-              hint: "1234",
-              icon: Icons.lock,
-              obscureText: true,
-              keyboardType: TextInputType.number,
-            ),
+            // CustomTextField(
+            //   controller: _pinController,
+            //   label: "Transfer PIN (Optional)",
+            //   hint: "1234",
+            //   icon: Icons.lock,
+            //   obscureText: true,
+            //   keyboardType: TextInputType.number,
+            // ),
             if (_errorMessage != null) ...[
               const SizedBox(height: 16),
               ErrorCard(message: _errorMessage!),
@@ -590,7 +592,7 @@ class _AirtimeDemoScreenState extends State<AirtimeDemoScreen> {
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _sellAirtime,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF667EEA),
+                  backgroundColor: AppColors.primary,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),

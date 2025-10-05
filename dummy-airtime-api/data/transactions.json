@@ -10,5 +10,65 @@
     "createdAt": "2025-10-04T14:09:51.202Z",
     "type": "received",
     "completedAt": "2025-10-04T14:09:56.220Z"
+  },
+  "fb054a31-1ebf-4491-8d1b-d95db2b56607": {
+    "id": "fb054a31-1ebf-4491-8d1b-d95db2b56607",
+    "userId": "user_1",
+    "network": "mtn",
+    "phone": "09024386013",
+    "amount": 400,
+    "cashAmount": 340,
+    "status": "completed",
+    "createdAt": "2025-10-05T13:14:45.575Z",
+    "type": "received",
+    "completedAt": "2025-10-05T13:14:50.578Z"
+  },
+  "c1893dce-ec97-4eaa-9625-4eae6e42d273": {
+    "id": "c1893dce-ec97-4eaa-9625-4eae6e42d273",
+    "userId": "user_1",
+    "network": "airtel",
+    "phone": "09024386013",
+    "amount": 90,
+    "cashAmount": 76.5,
+    "status": "completed",
+    "createdAt": "2025-10-05T13:17:58.121Z",
+    "type": "received",
+    "completedAt": "2025-10-05T13:18:03.123Z"
+  },
+  "f45a93af-2409-4ee7-9d3c-e04bc7fa176e": {
+    "id": "f45a93af-2409-4ee7-9d3c-e04bc7fa176e",
+    "userId": "user_1",
+    "network": "glo",
+    "phone": "0906543214",
+    "amount": 49,
+    "cashAmount": 41.65,
+    "status": "completed",
+    "createdAt": "2025-10-05T13:20:13.786Z",
+    "type": "received",
+    "completedAt": "2025-10-05T13:20:18.786Z"
+  },
+  "a71a9382-f54d-45ec-93ac-fe2c0ffb4a88": {
+    "id": "a71a9382-f54d-45ec-93ac-fe2c0ffb4a88",
+    "userId": "user_1",
+    "network": "airtel",
+    "phone": "09076543213",
+    "amount": 43,
+    "cashAmount": 36.55,
+    "status": "completed",
+    "createdAt": "2025-10-05T13:26:17.669Z",
+    "type": "received",
+    "completedAt": "2025-10-05T13:26:22.672Z"
+  },
+  "1168696b-829b-4034-905e-0d5c676c296f": {
+    "id": "1168696b-829b-4034-905e-0d5c676c296f",
+    "userId": "user_1",
+    "network": "airtel",
+    "phone": "090887654323",
+    "amount": 79,
+    "cashAmount": 79,
+    "status": "completed",
+    "createdAt": "2025-10-05T13:30:49.065Z",
+    "type": "sent",
+    "completedAt": "2025-10-05T13:30:52.066Z"
   }
 }

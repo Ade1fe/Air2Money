@@ -3,10 +3,37 @@ import 'package:air2money/widgets/balance_card.dart';
 import 'package:air2money/widgets/custom_textfield.dart';
 import 'package:air2money/widgets/network_selector.dart';
 import 'package:air2money/widgets/info_card.dart';
-import 'package:air2money/widgets/loading_balance_card.dart';
 import 'package:air2money/widgets/transaction_card.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
+// Assuming you have an ErrorCard widget somewhere,
+// adding a placeholder to make the provided code run.
+class ErrorCard extends StatelessWidget {
+  final String message;
+  const ErrorCard({super.key, required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.red[50],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.red[200]!),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.error_outline, color: Colors.red[700]),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(message, style: TextStyle(color: Colors.red[700])),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class AirtimeDemoScreen extends StatefulWidget {
   const AirtimeDemoScreen({super.key});
@@ -72,13 +99,17 @@ class _AirtimeDemoScreenState extends State<AirtimeDemoScreen> {
     _phoneController.dispose();
     _amountController.dispose();
     _pinController.dispose();
+    _amountController.removeListener(_calculateEstimatedCash);
     super.dispose();
   }
 
   void _calculateEstimatedCash() {
     final amount = double.tryParse(_amountController.text);
     if (amount != null && _selectedNetwork != null) {
-      final network = _networks.firstWhere((n) => n['id'] == _selectedNetwork);
+      final network = _networks.firstWhere(
+        (n) => n['id'] == _selectedNetwork,
+        orElse: () => _networks.first,
+      );
       final rate = network['rate'] as double;
       setState(() => _estimatedCash = amount * rate);
     } else {
@@ -89,6 +120,7 @@ class _AirtimeDemoScreenState extends State<AirtimeDemoScreen> {
   Future<void> _loadBalance() async {
     setState(() => _isLoadingBalance = true);
     try {
+      // NOTE: AirtimeApi.getBalance is a mock/placeholder function
       final bal = await AirtimeApi.getBalance("user_1");
       if (mounted) {
         setState(() {
@@ -102,7 +134,8 @@ class _AirtimeDemoScreenState extends State<AirtimeDemoScreen> {
           _balance = 0.0;
           _isLoadingBalance = false;
         });
-        _showError("Failed to load balance: ${e.toString()}");
+        // We can choose not to show an error for initial balance loading if it's expected
+        // _showError("Failed to load balance: ${e.toString()}");
       }
     }
   }
@@ -120,6 +153,7 @@ class _AirtimeDemoScreenState extends State<AirtimeDemoScreen> {
     });
 
     try {
+      // NOTE: AirtimeApi.sellAirtime is a mock/placeholder function
       final res = await AirtimeApi.sellAirtime(
         userId: "user_1",
         network: _selectedNetwork!,
@@ -153,6 +187,7 @@ class _AirtimeDemoScreenState extends State<AirtimeDemoScreen> {
     setState(() => _isLoading = true);
 
     try {
+      // NOTE: AirtimeApi.getTransaction is a mock/placeholder function
       final tx = await AirtimeApi.getTransaction(_transactionId!);
       if (mounted) {
         setState(() => _isLoading = false);
@@ -177,6 +212,7 @@ class _AirtimeDemoScreenState extends State<AirtimeDemoScreen> {
     );
   }
 
+  // airtime_demo_screen.dart: around line 220
   void _showSuccessDialog() {
     final amount = double.parse(_amountController.text);
     showDialog(
@@ -187,13 +223,23 @@ class _AirtimeDemoScreenState extends State<AirtimeDemoScreen> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
+            // CORRECTED ROW HERE: Wrapped Text in Expanded
             title: Row(
               children: const [
                 Icon(Icons.check_circle, color: Colors.green, size: 32),
                 SizedBox(width: 12),
-                Text("Transaction Submitted!"),
+                // FIX: Use Expanded to make the text fit the remaining space
+                Expanded(
+                  child: Text(
+                    "Transaction Submitted!",
+                    overflow:
+                        TextOverflow
+                            .ellipsis, // Optional: ensure no overflow if space is extremely tight
+                  ),
+                ),
               ],
             ),
+            // ... (rest of the dialog content remains the same)
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -238,10 +284,15 @@ class _AirtimeDemoScreenState extends State<AirtimeDemoScreen> {
               ],
             ),
             actions: [
+              // In AirtimeDemoScreen, modify the "Done" button in _showSuccessDialog()
               TextButton(
                 onPressed: () {
                   Navigator.of(ctx).pop();
                   _clearForm();
+                  // Navigate back and force refresh
+                  if (context.mounted) {
+                    context.pop(true); // Pass 'true' to indicate data changed
+                  }
                 },
                 child: const Text("Done"),
               ),
@@ -364,7 +415,7 @@ class _AirtimeDemoScreenState extends State<AirtimeDemoScreen> {
           },
         ),
         title: const Text(
-          "Sell Airtime for Cash",
+          "",
           style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w600),
         ),
         actions: [
@@ -491,19 +542,28 @@ class _AirtimeDemoScreenState extends State<AirtimeDemoScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      "You will receive:",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
+                    // FIX: Wrapped in Flexible to allow text to shrink
+                    Flexible(
+                      child: const Text(
+                        "You will receive:",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                        overflow:
+                            TextOverflow.ellipsis, // Added overflow handling
                       ),
                     ),
-                    Text(
-                      "₦${_estimatedCash!.toStringAsFixed(2)}",
-                      style: TextStyle(
-                        color: Colors.green[700],
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
+                    Flexible(
+                      child: Text(
+                        "₦${_estimatedCash!.toStringAsFixed(2)}",
+                        textAlign: TextAlign.right,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: Colors.green[700],
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
                       ),
                     ),
                   ],
@@ -554,6 +614,378 @@ class _AirtimeDemoScreenState extends State<AirtimeDemoScreen> {
                             color: Colors.white,
                           ),
                         ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+
+
+
+----------------------------------------------------------------------------
+
+
+
+
+import 'package:air2money/service/airtime_api.dart';
+import 'package:air2money/widgets/balance_card.dart';
+import 'package:air2money/widgets/custom_textfield.dart';
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart';
+
+class AirtimeScreen extends StatefulWidget {
+  const AirtimeScreen({super.key});
+
+  @override
+  State<AirtimeScreen> createState() => _AirtimeScreenState();
+}
+
+class _AirtimeScreenState extends State<AirtimeScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _amountController = TextEditingController();
+
+  // Changed type to String to hold the network ID (e.g., 'mtn')
+  String? _selectedNetworkId;
+
+  bool _isLoading = false;
+  bool _isLoadingBalance = false;
+  double _balance = 0.0;
+  String? _transactionId;
+
+  final List<Map<String, dynamic>> _networks = const [
+    {
+      'id': 'mtn',
+      'name': 'MTN',
+      'icon': '📱',
+      'color': Color(0xFFFFCC00),
+      'rate': 0.85,
+    },
+    {
+      'id': 'glo',
+      'name': 'Glo',
+      'icon': '🌐',
+      'color': Color(0xFF00A650),
+      'rate': 0.82,
+    },
+    {
+      'id': 'airtel',
+      'name': 'Airtel',
+      'icon': '📡',
+      'color': Color(0xFFED1C24),
+      'rate': 0.85,
+    },
+    {
+      'id': '9mobile',
+      'name': '9mobile',
+      'icon': '📞',
+      'color': Color(0xFF00923F),
+      'rate': 0.80,
+    },
+  ];
+
+  final String _userId = "user_1"; // Later make this dynamic from storage
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBalance();
+  }
+
+  @override
+  void dispose() {
+    _phoneController.dispose();
+    _amountController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadBalance() async {
+    setState(() => _isLoadingBalance = true);
+    try {
+      // NOTE: AirtimeApi.getBalance is a mock/placeholder function
+      final bal = await AirtimeApi.getBalance(_userId);
+      if (mounted) {
+        setState(() {
+          _balance = bal;
+          _isLoadingBalance = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _balance = 0.0;
+          _isLoadingBalance = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _buyAirtime() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (_selectedNetworkId == null) {
+      _showError("Please select a network provider.");
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      // NOTE: AirtimeApi.sellAirtime is used here, but for buying airtime
+      // you should ideally use a method like AirtimeApi.buyAirtime
+      // Assuming AirtimeApi.sellAirtime is a placeholder for any transaction API call
+      final res = await AirtimeApi.sellAirtime(
+        userId: _userId,
+        network: _selectedNetworkId!,
+        phone: _phoneController.text.trim(),
+        amount: double.parse(_amountController.text.trim()),
+      );
+
+      if (mounted) {
+        setState(() {
+          _transactionId = res['transaction']['id'];
+          _isLoading = false;
+        });
+        _loadBalance();
+        _showSuccessDialog();
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        _showError("Transaction failed: ${e.toString()}");
+      }
+    }
+  }
+
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      builder:
+          (ctx) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: const Text("🎉 Success!"),
+            content: Text(
+              "Your airtime purchase was successful!\n\nTransaction ID: $_transactionId",
+              style: GoogleFonts.poppins(fontSize: 14),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text("OK"),
+              ),
+            ],
+          ),
+    );
+  }
+
+  void _showError(String message) {
+    showDialog(
+      context: context,
+      builder:
+          (ctx) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: const Text("❌ Error"),
+            content: Text(message, style: GoogleFonts.poppins(fontSize: 14)),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text("Close"),
+              ),
+            ],
+          ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey[50],
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.white,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/home');
+            }
+          },
+        ),
+        title: Text(
+          "Buy Airtime",
+          style: GoogleFonts.poppins(
+            color: Colors.black87,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.black87),
+            onPressed: _loadBalance,
+          ),
+        ],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: ListView(
+          children: [
+            // Balance card
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.deepPurple,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Wallet Balance",
+                    style: GoogleFonts.poppins(color: Colors.white70),
+                  ),
+                  _isLoadingBalance
+                      ? const SizedBox(
+                        height: 16,
+                        width: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                      : Text(
+                        "₦${_balance.toStringAsFixed(2)}",
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            // Form
+            Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Select Network",
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 10,
+                    children:
+                        _networks.map((network) {
+                          // Use the 'id' to check selection
+                          final networkId = network['id'] as String;
+                          final networkName = network['name'] as String;
+                          final isSelected = _selectedNetworkId == networkId;
+
+                          return ChoiceChip(
+                            // Use the 'name' for the visible label
+                            label: Text(networkName),
+                            selected: isSelected,
+                            onSelected: (_) {
+                              // Set the 'id' when selected
+                              setState(() => _selectedNetworkId = networkId);
+                            },
+                            selectedColor: Colors.deepPurple,
+                            labelStyle: TextStyle(
+                              color: isSelected ? Colors.white : Colors.black87,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            backgroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              side: BorderSide(
+                                color:
+                                    isSelected
+                                        ? Colors.deepPurple
+                                        : Colors.grey.shade300,
+                                width: 1.5,
+                              ),
+                            ),
+                            elevation: 1,
+                          );
+                        }).toList(),
+                  ),
+                  const SizedBox(height: 20),
+                  // Phone number
+                  CustomTextField(
+                    controller: _phoneController,
+                    label: "Phone Number",
+                    hint: "08039998877",
+                    icon: Icons.phone_android,
+                    keyboardType: TextInputType.phone,
+                    validator: (val) {
+                      if (val == null || val.isEmpty)
+                        return "Enter phone number";
+                      if (val.length < 10) return "Invalid phone number";
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  // Amount
+                  CustomTextField(
+                    controller: _amountController,
+                    label: "Amount (₦)",
+                    hint: "500",
+                    icon: Icons.payments_outlined,
+                    keyboardType: TextInputType.number,
+                    validator: (val) {
+                      if (val == null || val.isEmpty) return "Enter amount";
+                      final numValue = double.tryParse(val);
+                      if (numValue == null || numValue <= 0) {
+                        return "Enter a valid amount";
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                  // Buy button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _isLoading ? null : _buyAirtime,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.deepPurple,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child:
+                          _isLoading
+                              ? const CircularProgressIndicator(
+                                color: Colors.white,
+                              )
+                              : Text(
+                                "Buy Airtime",
+                                style: GoogleFonts.poppins(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
