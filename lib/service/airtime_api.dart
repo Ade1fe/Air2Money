@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 /// For real device, replace with your PC's IP address (e.g., http://192.168.1.20:4000)
 
 class AirtimeApi {
-  static const String baseUrl = "http://192.168.1.20:4000";
+  static const String baseUrl = "http://10.0.2.2:4000";
 
   /// Get available providers
   static Future<List<dynamic>> getProviders() async {
